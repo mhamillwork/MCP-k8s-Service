@@ -1,0 +1,188 @@
+# Default values for mcp-server.
+# One Helm release deploys one MCP service. Override per service via helm-deploy/*-values.yaml.
+
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+
+image:
+  repository: ""
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: artifactory-registry-secret
+
+# Override container entrypoint when the real MCP script uses a non-default CLI.
+command: []
+args: []
+
+serviceAccount:
+  create: true
+  automount: false
+  annotations: {}
+  name: ""
+
+# RBAC is disabled by default; MCP services do not need Kubernetes API access.
+rbac:
+  create: false
+  rules: []
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 10001
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+  annotations: {}
+  labels: {}
+
+# Preferred transport is streamable-http with endpoint /mcp.
+# These values document intent and feed NOTES/labels; they do NOT change the Python process.
+# Align command/args/probes with the actual script after inspecting src/*.py.
+mcp:
+  transport: streamable-http
+  endpoint: /mcp
+
+env: []
+# - name: EXAMPLE
+#   value: "value"
+# - name: SECRET_VALUE
+#   valueFrom:
+#     secretKeyRef:
+#       name: example-secret
+#       key: password
+
+envFrom: []
+# - secretRef:
+#     name: example-secret
+# - configMapRef:
+#     name: example-config
+
+configMap:
+  enabled: false
+  data: {}
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+# Prefer a dedicated HTTP health endpoint if the application provides one.
+# Otherwise use TCP probes. Do not probe the MCP protocol path unless verified.
+probes:
+  startup:
+    enabled: true
+    type: tcp
+    path: ""
+    port: ""
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 30
+  readiness:
+    enabled: true
+    type: tcp
+    path: ""
+    port: ""
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+  liveness:
+    enabled: true
+    type: tcp
+    path: ""
+    port: ""
+    initialDelaySeconds: 15
+    periodSeconds: 20
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# Optional Gateway API HTTPRoute (disabled by default; ClusterIP only).
+gateway:
+  enabled: false
+  parentRefs: []
+  # - name: shared-gateway
+  #   namespace: gateway
+  #   sectionName: https
+  hostnames: []
+  # - mcp.example.local
+  rules: []
+  # If rules is empty and gateway.enabled=true, a default path rule uses mcp.endpoint.
+
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress: []
+  # Allow DNS and required backends by default when enabled with empty egress (safe baseline).
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+
+serviceMonitor:
+  enabled: false
+  namespace: monitoring
+  interval: 30s
+  scrapeTimeout: 10s
+  path: /metrics
+  port: http
+  labels:
+    release: monitoring
+  annotations: {}
+
+persistence:
+  enabled: false
+  existingClaim: ""
+  mountPath: /data
+  subPath: ""
+  readOnly: false
+  # Used only when existingClaim is empty and persistence.enabled=true.
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+  storageClassName: ""
+  annotations: {}
+
+extraVolumes: []
+extraVolumeMounts: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+priorityClassName: ""
+
+# Writable tmp for read-only root filesystem containers.
+tmpVolume:
+  enabled: true
+  sizeLimit: 64Mi

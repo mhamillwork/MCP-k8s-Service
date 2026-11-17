@@ -1,0 +1,43 @@
+# ATOMS Knowledge MCP
+# Build from repository root:
+#   docker build -f dockerfiles/Dockerfile.atoms-knowledge-mcp -t atoms-knowledge-mcp:1.0.0 .
+#
+# Override the base image for air-gapped / mirrored registries:
+#   --build-arg PYTHON_BASE_IMAGE=artifactory.example.local/mirror/python:3.12-slim
+
+ARG PYTHON_BASE_IMAGE=python:3.12-slim
+FROM ${PYTHON_BASE_IMAGE}
+
+ARG APP_USER=mcp
+ARG APP_UID=10001
+ARG APP_GID=10001
+ARG SERVICE_PORT=8000
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    APP_HOME=/app \
+    SERVICE_PORT=${SERVICE_PORT} \
+    MCP_TRANSPORT=streamable-http \
+    MCP_ENDPOINT=/mcp
+
+WORKDIR /app
+
+RUN groupadd --gid "${APP_GID}" "${APP_USER}" \
+    && useradd --uid "${APP_UID}" --gid "${APP_GID}" --create-home --home-dir /home/${APP_USER} --shell /usr/sbin/nologin "${APP_USER}" \
+    && mkdir -p /app \
+    && chown -R "${APP_USER}:${APP_USER}" /app
+
+COPY requirements/atoms-knowledge.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt \
+    && rm -f /tmp/requirements.txt
+
+# Requires src/atoms_knowledge_mcp.py (copy from the isolated environment; do not fabricate).
+COPY --chown=${APP_USER}:${APP_USER} src/atoms_knowledge_mcp.py /app/atoms_knowledge_mcp.py
+
+USER ${APP_UID}:${APP_GID}
+
+EXPOSE ${SERVICE_PORT}
+
+CMD ["python", "/app/atoms_knowledge_mcp.py"]

@@ -1,0 +1,85 @@
+# GTISS/DIS Knowledge MCP — service-specific overrides
+# Independent Neo4j credentials and database from Technical Knowledge / ATOMS.
+# VERIFY after src/gtiss_dis_knowledge_mcp.py is available.
+
+image:
+  repository: artifactory.tahaa.local/tahaa-image-local/ai-services/gtiss-dis-knowledge-mcp
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: artifactory-registry-secret
+
+replicaCount: 1
+
+command: []
+args: []
+
+mcp:
+  transport: streamable-http
+  endpoint: /mcp
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+# PLACEHOLDER env names — verify against gtiss_dis_knowledge_mcp.py.
+# Do not share Secrets with other Neo4j-backed MCP releases unless intentionally designed.
+env:
+  - name: NEO4J_URI
+    value: "bolt://neo4j-gtiss-dis.neo4j.svc.cluster.local:7687"
+  - name: NEO4J_DATABASE
+    value: "gtiss_dis"
+  - name: NEO4J_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: mcp-gtiss-dis-knowledge-neo4j
+        key: username
+  - name: NEO4J_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: mcp-gtiss-dis-knowledge-neo4j
+        key: password
+
+envFrom: []
+
+probes:
+  startup:
+    enabled: true
+    type: tcp
+  readiness:
+    enabled: true
+    type: tcp
+  liveness:
+    enabled: true
+    type: tcp
+
+serviceMonitor:
+  enabled: false
+  namespace: monitoring
+  interval: 30s
+  scrapeTimeout: 10s
+  path: /metrics
+  labels:
+    release: monitoring
+
+persistence:
+  enabled: false
+
+rbac:
+  create: false
+
+gateway:
+  enabled: false
+
+networkPolicy:
+  enabled: false

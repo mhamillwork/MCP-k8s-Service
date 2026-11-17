@@ -1,0 +1,84 @@
+# ATOMS Knowledge MCP — service-specific overrides
+# Keep Neo4j configuration independent from Technical Knowledge and GTISS/DIS.
+# VERIFY after src/atoms_knowledge_mcp.py is available.
+
+image:
+  repository: artifactory.tahaa.local/tahaa-image-local/ai-services/atoms-knowledge-mcp
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: artifactory-registry-secret
+
+replicaCount: 1
+
+command: []
+args: []
+
+mcp:
+  transport: streamable-http
+  endpoint: /mcp
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+# PLACEHOLDER env names — verify against atoms_knowledge_mcp.py.
+env:
+  - name: NEO4J_URI
+    value: "bolt://neo4j-atoms.neo4j.svc.cluster.local:7687"
+  - name: NEO4J_DATABASE
+    value: "atoms"
+  - name: NEO4J_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: mcp-atoms-knowledge-neo4j
+        key: username
+  - name: NEO4J_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: mcp-atoms-knowledge-neo4j
+        key: password
+
+envFrom: []
+
+probes:
+  startup:
+    enabled: true
+    type: tcp
+  readiness:
+    enabled: true
+    type: tcp
+  liveness:
+    enabled: true
+    type: tcp
+
+serviceMonitor:
+  enabled: false
+  namespace: monitoring
+  interval: 30s
+  scrapeTimeout: 10s
+  path: /metrics
+  labels:
+    release: monitoring
+
+persistence:
+  enabled: false
+
+rbac:
+  create: false
+
+gateway:
+  enabled: false
+
+networkPolicy:
+  enabled: false

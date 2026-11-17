@@ -1,0 +1,76 @@
+# Helmfile for the five MCP services.
+# Run from this directory (helm-deploy/) so relative chart/values paths resolve.
+#
+# Examples:
+#   helmfile lint
+#   helmfile template
+#   helmfile -l name=mcp-technical-knowledge apply
+#   helmfile apply
+#   helmfile -l name=mcp-wobbegong-sql destroy   # destructive; require explicit intent
+
+repositories: []
+
+helmDefaults:
+  wait: true
+  timeout: 300
+  createNamespace: true
+  historyMax: 10
+  # Air-gapped clusters: do not fetch remote charts.
+  skipDeps: true
+
+environments:
+  default:
+    values: []
+
+---
+
+releases:
+  - name: mcp-technical-knowledge
+    namespace: mcp
+    chart: ../helm-chart/mcp-server
+    missingFileHandler: Error
+    labels:
+      app: technical-knowledge
+      group: mcp
+    values:
+      - technical-knowledge-values.yaml
+
+  - name: mcp-wobbegong-sql
+    namespace: mcp
+    chart: ../helm-chart/mcp-server
+    missingFileHandler: Error
+    labels:
+      app: wobbegong-sql
+      group: mcp
+    values:
+      - wobbegong-sql-values.yaml
+
+  - name: mcp-gtiss-dis-knowledge
+    namespace: mcp
+    chart: ../helm-chart/mcp-server
+    missingFileHandler: Error
+    labels:
+      app: gtiss-dis-knowledge
+      group: mcp
+    values:
+      - gtiss-dis-knowledge-values.yaml
+
+  - name: mcp-devsecops-knowledge
+    namespace: mcp
+    chart: ../helm-chart/mcp-server
+    missingFileHandler: Error
+    labels:
+      app: devsecops-knowledge
+      group: mcp
+    values:
+      - devsecops-knowledge-values.yaml
+
+  - name: mcp-atoms-knowledge
+    namespace: mcp
+    chart: ../helm-chart/mcp-server
+    missingFileHandler: Error
+    labels:
+      app: atoms-knowledge
+      group: mcp
+    values:
+      - atoms-knowledge-values.yaml

@@ -1,0 +1,98 @@
+# Wobbegong SQL MCP — service-specific overrides
+# VERIFY after src/wobbegong_sql_mcp.py is available:
+#   - SQLite path env name, read-only vs read-write mode
+#   - MCP transport/endpoint, command/args, probes
+#
+# SQLite notes:
+#   - Default to one replica; concurrent writers on shared storage are unsafe.
+#   - Prefer an existing PVC owned by UID/GID 10001 (chart default).
+#   - Document locking and filesystem ownership in docs/configuration.md.
+
+image:
+  repository: artifactory.tahaa.local/tahaa-image-local/ai-services/wobbegong-sql-mcp
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: artifactory-registry-secret
+
+replicaCount: 1
+
+command: []
+args: []
+
+mcp:
+  transport: streamable-http
+  endpoint: /mcp
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: "500m"
+    memory: 512Mi
+
+# PLACEHOLDER — verify env names against wobbegong_sql_mcp.py.
+env:
+  - name: SQLITE_DB_PATH
+    value: "/data/wobbegong.db"
+  - name: SQLITE_READ_ONLY
+    value: "true"
+
+envFrom: []
+
+persistence:
+  enabled: true
+  # Set to an existing PVC name in the mcp namespace, or leave empty to create one.
+  existingClaim: ""
+  mountPath: /data
+  readOnly: false
+  accessModes:
+    - ReadWriteOnce
+  size: 5Gi
+  storageClassName: ""
+
+# readOnlyRootFilesystem remains true; DB lives on the /data volume.
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 10001
+  capabilities:
+    drop:
+      - ALL
+
+probes:
+  startup:
+    enabled: true
+    type: tcp
+  readiness:
+    enabled: true
+    type: tcp
+  liveness:
+    enabled: true
+    type: tcp
+
+serviceMonitor:
+  enabled: false
+  namespace: monitoring
+  interval: 30s
+  scrapeTimeout: 10s
+  path: /metrics
+  labels:
+    release: monitoring
+
+rbac:
+  create: false
+
+gateway:
+  enabled: false
+
+networkPolicy:
+  enabled: false

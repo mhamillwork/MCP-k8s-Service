@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.env
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Secrets and local overrides (never commit credentials)
+*.pem
+*.key
+secrets/
+.env.*
+!.env.example
+*-secrets.yaml
+*-secret.yaml
+local-values*.yaml
+**/values.local.yaml
+
+# Helm
+charts/*.tgz
+*.tgz
+Chart.lock
+
+# Docker / build artifacts
+*.tar
+*.tar.gz
+!docs/**/*.tar.gz
+image-archives/
+
+# Validation / temp
+.tmp/
+.cache/
+helm-rendered/
+validation-output/
+
+# OS package manager
+*.deb
+*.rpm

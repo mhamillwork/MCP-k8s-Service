@@ -1,0 +1,106 @@
+# DevSecOps Knowledge MCP — service-specific overrides
+# Integrates with Jira, GitLab, Confluence, and Artifactory.
+# VERIFY after src/devsecops_knowledge_mcp.py is available:
+#   - actual env var names, base URLs, auth mechanisms
+#   - which tools are read-only vs mutating
+# Prefer read-only API credentials initially.
+# Do not hardcode tokens; do not invent API paths or tool names.
+
+image:
+  repository: artifactory.tahaa.local/tahaa-image-local/ai-services/devsecops-knowledge-mcp
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: artifactory-registry-secret
+
+replicaCount: 1
+
+command: []
+args: []
+
+mcp:
+  transport: streamable-http
+  endpoint: /mcp
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+# PLACEHOLDER URLs and Secret refs — replace with internal endpoints after script inspection.
+env:
+  - name: JIRA_BASE_URL
+    value: "https://jira.example.internal"
+  - name: GITLAB_BASE_URL
+    value: "https://gitlab.example.internal"
+  - name: CONFLUENCE_BASE_URL
+    value: "https://confluence.example.internal"
+  - name: ARTIFACTORY_BASE_URL
+    value: "https://artifactory.example.internal"
+  - name: JIRA_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: mcp-devsecops-knowledge-apis
+        key: jira-token
+  - name: GITLAB_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: mcp-devsecops-knowledge-apis
+        key: gitlab-token
+  - name: CONFLUENCE_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: mcp-devsecops-knowledge-apis
+        key: confluence-token
+  - name: ARTIFACTORY_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: mcp-devsecops-knowledge-apis
+        key: artifactory-token
+  # Prefer enforcing read-only behaviour in the app when supported.
+  - name: DEVSECOPS_READ_ONLY
+    value: "true"
+
+envFrom: []
+
+probes:
+  startup:
+    enabled: true
+    type: tcp
+  readiness:
+    enabled: true
+    type: tcp
+  liveness:
+    enabled: true
+    type: tcp
+
+serviceMonitor:
+  enabled: false
+  namespace: monitoring
+  interval: 30s
+  scrapeTimeout: 10s
+  path: /metrics
+  labels:
+    release: monitoring
+
+persistence:
+  enabled: false
+
+rbac:
+  create: false
+
+gateway:
+  enabled: false
+
+networkPolicy:
+  enabled: false
+  # When enabling, allow egress to Jira/GitLab/Confluence/Artifactory and DNS.

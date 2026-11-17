@@ -1,0 +1,27 @@
+MCP server release "{{ .Release.Name }}" deployed in namespace "{{ .Release.Namespace }}".
+
+Service (ClusterIP by default):
+  {{ include "mcp-server.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}
+
+Documented MCP settings (must match the real Python implementation):
+  transport: {{ .Values.mcp.transport }}
+  endpoint:  {{ .Values.mcp.endpoint }}
+
+{{- if eq .Values.mcp.transport "streamable-http" }}
+Preferred internal URL (only valid after transport/endpoint are verified):
+  http://{{ include "mcp-server.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}{{ .Values.mcp.endpoint }}
+{{- else if eq .Values.mcp.transport "stdio" }}
+This release is configured for stdio transport. Expose it through an HTTP adapter
+before connecting HTTP MCP clients. See docs/mcp-client-integration.md.
+{{- end }}
+
+Image: {{ include "mcp-server.image" . }}
+Replicas: {{ .Values.replicaCount }}
+ServiceMonitor: {{ .Values.serviceMonitor.enabled }}
+HTTPRoute: {{ .Values.gateway.enabled }}
+RBAC: {{ .Values.rbac.create }}
+Persistence: {{ .Values.persistence.enabled }}
+
+Credentials must come from Kubernetes Secrets (env / envFrom), never from committed values files.
+Verify probes, command/args, and environment variable names against the actual Python script
+before production use.

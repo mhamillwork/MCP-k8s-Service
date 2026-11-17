@@ -1,0 +1,10 @@
+# UNRESOLVED: devsecops_knowledge_mcp.py is not yet present in /src.
+# After the script is copied, inspect its imports and pin verified package versions.
+#
+# Expected dependency areas (unverified):
+#   - MCP SDK / server framework used by the script
+#   - HTTP client libraries for Jira, GitLab, Confluence, Artifactory
+#   - Any HTTP/ASGI stack required for the chosen MCP transport
+#
+# Do not invent API client packages or versions.
+# Add packages only after inspecting the real script and its environment.

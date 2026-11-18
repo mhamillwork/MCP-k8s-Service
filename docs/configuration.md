@@ -34,6 +34,9 @@
 | `gateway.certificate.issuerRef` | see values | Internal CA Issuer/ClusterIssuer |
 | `gateway.pathPrefix` | `""` | Defaults to `mcp.endpoint` then `/` |
 | `gateway.parentRefs` | `[]` | Use instead of `create` to attach to a shared Gateway |
+| `nodeSelector` | `{}` | Pin pods to a specific node (set in each `helm-deploy/*-values.yaml`) |
+| `tolerations` | `[]` | Optional taint tolerations for dedicated nodes |
+| `affinity` | `{}` | Optional node/pod affinity rules |
 | `networkPolicy.enabled` | `false` | Cilium-compatible when enabled |
 | `serviceMonitor.enabled` | `false` | Enable only with real `/metrics` |
 | `persistence.enabled` | `false` | SQLite / file state |

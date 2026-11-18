@@ -253,6 +253,9 @@ persistence:
 extraVolumes: []
 extraVolumeMounts: []
 
+# Schedule the single MCP container pod onto a specific node, for example:
+# nodeSelector:
+#   kubernetes.io/hostname: mcp-worker-01
 nodeSelector: {}
 tolerations: []
 affinity: {}

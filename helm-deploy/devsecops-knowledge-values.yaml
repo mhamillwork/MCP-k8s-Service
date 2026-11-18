@@ -129,6 +129,12 @@ gateway:
       kind: ClusterIssuer
       group: cert-manager.io
 
+# Pin this MCP Deployment to a specific node. Replace with your node name or label.
+nodeSelector:
+  kubernetes.io/hostname: mcp-worker-01
+# tolerations: []
+# affinity: {}
+
 networkPolicy:
   enabled: false
   # When enabling, allow egress to Jira/GitLab/Confluence/Artifactory and DNS.

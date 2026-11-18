@@ -82,8 +82,8 @@ persistence:
 rbac:
   create: false
 
-# Gateway API: creates a Gateway (routable/LB IP) + HTTPRoute to this ClusterIP Service.
-# VERIFY gatewayClassName against the cluster (cilium, istio, nginx, …).
+# Gateway API: HTTPS Gateway (routable/LB IP) + HTTPRoute to this ClusterIP Service.
+# VERIFY gatewayClassName and certificate.issuerRef against the cluster.
 gateway:
   enabled: true
   create: true
@@ -93,12 +93,29 @@ gateway:
   # - type: IPAddress
   #   value: 10.50.0.21
   annotations: {}
-  listenerPort: 80
-  sectionName: http
   hostnames:
     - technical-knowledge-mcp.example.local
   pathPrefix: /mcp
   pathType: PathPrefix
+  # Isolated network: HTTPS only.
+  http:
+    enabled: false
+  tls:
+    enabled: true
+    port: 443
+    sectionName: https
+    mode: Terminate
+  certificate:
+    enabled: true
+    create: true
+    # SANs; defaults to gateway.hostnames when empty.
+    dnsNames:
+      - technical-knowledge-mcp.example.local
+    issuerRef:
+      # Internal/air-gapped CA ClusterIssuer (replace with your real issuer name).
+      name: internal-ca
+      kind: ClusterIssuer
+      group: cert-manager.io
 
 networkPolicy:
   enabled: false

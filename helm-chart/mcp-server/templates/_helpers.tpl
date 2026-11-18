@@ -90,3 +90,40 @@ Gateway resource name
 {{- printf "%s-gw" (include "mcp-server.fullname" .) | trunc 63 | trimSuffix "-" }}
 {{- end }}
 {{- end }}
+
+{{/*
+cert-manager Certificate name
+*/}}
+{{- define "mcp-server.certificateName" -}}
+{{- if .Values.gateway.certificate.name }}
+{{- .Values.gateway.certificate.name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-tls" (include "mcp-server.fullname" .) | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+
+{{/*
+TLS Secret name used by Gateway certificateRefs and cert-manager Certificate
+*/}}
+{{- define "mcp-server.certificateSecretName" -}}
+{{- if .Values.gateway.certificate.secretName }}
+{{- .Values.gateway.certificate.secretName | trunc 63 | trimSuffix "-" }}
+{{- else if .Values.gateway.tls.secretName }}
+{{- .Values.gateway.tls.secretName | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-tls" (include "mcp-server.fullname" .) | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+
+{{/*
+HTTPRoute parent sectionName: prefer TLS when enabled
+*/}}
+{{- define "mcp-server.routeSectionName" -}}
+{{- if .Values.gateway.sectionName }}
+{{- .Values.gateway.sectionName }}
+{{- else if .Values.gateway.tls.enabled }}
+{{- .Values.gateway.tls.sectionName | default "https" }}
+{{- else }}
+{{- .Values.gateway.http.sectionName | default "http" }}
+{{- end }}
+{{- end }}

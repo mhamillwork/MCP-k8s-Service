@@ -24,15 +24,35 @@ Gateway API: {{ .Values.gateway.enabled }}
   {{- if .Values.gateway.create }}
   Gateway name: {{ include "mcp-server.gatewayName" . }}
   GatewayClass: {{ .Values.gateway.gatewayClassName }}
+  HTTP listener: {{ .Values.gateway.http.enabled }}
+  HTTPS/TLS listener: {{ .Values.gateway.tls.enabled }}
   {{- end }}
   HTTPRoute: {{ include "mcp-server.fullname" . }}
+  Route section: {{ include "mcp-server.routeSectionName" . }}
   {{- with .Values.gateway.hostnames }}
   Hostnames: {{ join ", " . }}
   {{- end }}
   Path: {{ .Values.gateway.pathPrefix | default .Values.mcp.endpoint | default "/" }}
+  {{- if .Values.gateway.certificate.enabled }}
+  Certificate: {{ include "mcp-server.certificateName" . }}
+  TLS Secret: {{ include "mcp-server.certificateSecretName" . }}
+  {{- with .Values.gateway.certificate.dnsNames }}
+  dnsNames: {{ join ", " . }}
+  {{- else }}
+  dnsNames: (from gateway.hostnames)
+  {{- end }}
+  Issuer: {{ .Values.gateway.certificate.issuerRef.kind }}/{{ .Values.gateway.certificate.issuerRef.name }}
+  {{- end }}
 
-  After install, read the Gateway address (routable/LB IP):
+  After install, read the Gateway address and certificate status:
     kubectl -n {{ .Release.Namespace }} get gateway {{ include "mcp-server.gatewayName" . }} -o wide
+    {{- if .Values.gateway.certificate.enabled }}
+    kubectl -n {{ .Release.Namespace }} get certificate {{ include "mcp-server.certificateName" . }}
+    {{- end }}
+  {{- if and .Values.gateway.tls.enabled .Values.gateway.hostnames }}
+  Preferred client URL:
+    https://{{ index .Values.gateway.hostnames 0 }}{{ .Values.gateway.pathPrefix | default .Values.mcp.endpoint | default "/mcp" }}
+  {{- end }}
 {{- end }}
 RBAC: {{ .Values.rbac.create }}
 Persistence: {{ .Values.persistence.enabled }}

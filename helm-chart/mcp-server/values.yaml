@@ -138,19 +138,63 @@ gateway:
   addresses: []
   annotations: {}
   labels: {}
+  # Deprecated alias for gateway.http.port (kept for compatibility).
   listenerPort: 80
   allowedRoutesFrom: Same
-  # Override listeners entirely when non-empty (replaces the default HTTP listener).
+  # Override listeners entirely when non-empty (replaces generated HTTP/HTTPS listeners).
   listeners: []
-  # Listener section name referenced by HTTPRoute parentRefs when create=true.
-  sectionName: http
+  # HTTPRoute parent sectionName. Empty = auto (https when tls.enabled, else http).
+  sectionName: ""
+
+  # Plaintext HTTP listener (useful for internal/testing; prefer TLS in production).
+  http:
+    enabled: true
+    port: 80
+    sectionName: http
+
+  # HTTPS listener with TLS termination at the Gateway.
+  tls:
+    enabled: false
+    port: 443
+    sectionName: https
+    mode: Terminate
+    # Optional existing TLS Secret name. Defaults to <fullname>-tls.
+    secretName: ""
+    # Override certificateRefs entirely when non-empty.
+    certificateRefs: []
+
+  # cert-manager Certificate for gateway.hostnames / certificate.dnsNames.
+  # Requires cert-manager and a usable Issuer/ClusterIssuer in the cluster.
+  certificate:
+    enabled: false
+    create: true
+    name: ""
+    secretName: ""
+    # SANs for the certificate. Defaults to gateway.hostnames when empty.
+    dnsNames: []
+    commonName: ""
+    issuerRef:
+      name: ""
+      kind: ClusterIssuer
+      group: cert-manager.io
+    duration: ""
+    renewBefore: ""
+    privateKey: {}
+    # algorithm: RSA
+    # size: 2048
+    usages: []
+    # - digital signature
+    # - key encipherment
+    # - server auth
+    annotations: {}
+    labels: {}
 
   # HTTPRoute parentRefs. Leave empty when gateway.create=true to attach to this chart's Gateway.
   # Or point at a shared Gateway instead of creating one per release:
   # parentRefs:
   #   - name: shared-mcp-gateway
   #     namespace: gateway
-  #     sectionName: http
+  #     sectionName: https
   parentRefs: []
 
   hostnames: []

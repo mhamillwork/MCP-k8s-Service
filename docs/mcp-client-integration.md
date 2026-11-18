@@ -11,13 +11,15 @@
 
 ## Connection parameters (after transport verification)
 
-| Service | Internal base | Preferred MCP URL (if Streamable HTTP) |
+| Service | ClusterIP (in-cluster) | Gateway HTTPS (isolated network) |
 |---|---|---|
-| Technical Knowledge | `http://mcp-technical-knowledge.mcp.svc.cluster.local:8000` | `.../mcp` |
-| Wobbegong SQL | `http://mcp-wobbegong-sql.mcp.svc.cluster.local:8000` | `.../mcp` |
-| GTISS/DIS | `http://mcp-gtiss-dis-knowledge.mcp.svc.cluster.local:8000` | `.../mcp` |
-| DevSecOps | `http://mcp-devsecops-knowledge.mcp.svc.cluster.local:8000` | `.../mcp` |
-| ATOMS | `http://mcp-atoms-knowledge.mcp.svc.cluster.local:8000` | `.../mcp` |
+| Technical Knowledge | `http://mcp-technical-knowledge.mcp.svc.cluster.local:8000/mcp` | `https://technical-knowledge-mcp.example.local/mcp` |
+| Wobbegong SQL | `http://mcp-wobbegong-sql.mcp.svc.cluster.local:8000/mcp` | `https://wobbegong-sql-mcp.example.local/mcp` |
+| GTISS/DIS | `http://mcp-gtiss-dis-knowledge.mcp.svc.cluster.local:8000/mcp` | `https://gtiss-dis-knowledge-mcp.example.local/mcp` |
+| DevSecOps | `http://mcp-devsecops-knowledge.mcp.svc.cluster.local:8000/mcp` | `https://devsecops-knowledge-mcp.example.local/mcp` |
+| ATOMS | `http://mcp-atoms-knowledge.mcp.svc.cluster.local:8000/mcp` | `https://atoms-knowledge-mcp.example.local/mcp` |
+
+Gateway URLs require a valid TLS trust path to your internal CA on the MCP client.
 
 Confirm transport, port, and path against each Python script before configuring clients.
 

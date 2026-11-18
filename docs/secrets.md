@@ -45,6 +45,37 @@ kubectl -n mcp create secret generic mcp-devsecops-knowledge-apis \
 
 Use least-privilege, preferably read-only tokens until mutating tools are explicitly authorized.
 
+## TLS certificates (Gateway HTTPS)
+
+Service values create a cert-manager `Certificate` per release. The resulting Secret
+(default name `<release>-tls`) is referenced by the Gateway HTTPS listener.
+
+You must provide an internal Issuer/ClusterIssuer (air-gapped CA), for example:
+
+```bash
+# Example only — use your real internal CA wiring.
+kubectl apply -f - <<'EOF'
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: internal-ca
+spec:
+  ca:
+    secretName: internal-ca-key-pair
+EOF
+```
+
+Then confirm:
+
+```bash
+kubectl -n mcp get certificate
+kubectl -n mcp describe certificate mcp-technical-knowledge-tls
+```
+
+Do not commit private keys or CA material to Git. If you already have a TLS Secret, set
+`gateway.certificate.create: false` and point `gateway.tls.secretName` (or
+`gateway.tls.certificateRefs`) at that Secret.
+
 ## Image pull secret
 
 ```bash

@@ -24,7 +24,14 @@
 | `gateway.create` | `true` | Create a Gateway that can allocate a routable/LB IP |
 | `gateway.gatewayClassName` | `""` | Required when `create=true` (e.g. `cilium`) |
 | `gateway.addresses` | `[]` | Optional static `IPAddress` / hostname requests |
-| `gateway.hostnames` | `[]` | HTTPRoute hostnames |
+| `gateway.hostnames` | `[]` | HTTPRoute / Certificate hostnames |
+| `gateway.http.enabled` | `true` | Plaintext HTTP listener (set `false` for HTTPS-only) |
+| `gateway.tls.enabled` | `false` | HTTPS listener with TLS terminate |
+| `gateway.tls.port` | `443` | HTTPS listener port |
+| `gateway.tls.sectionName` | `https` | Listener name used by HTTPRoute `parentRefs` |
+| `gateway.certificate.enabled` | `false` | Enable cert-manager Certificate |
+| `gateway.certificate.dnsNames` | `[]` | SANs; defaults to `gateway.hostnames` |
+| `gateway.certificate.issuerRef` | see values | Internal CA Issuer/ClusterIssuer |
 | `gateway.pathPrefix` | `""` | Defaults to `mcp.endpoint` then `/` |
 | `gateway.parentRefs` | `[]` | Use instead of `create` to attach to a shared Gateway |
 | `networkPolicy.enabled` | `false` | Cilium-compatible when enabled |

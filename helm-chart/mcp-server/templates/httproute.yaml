@@ -19,11 +19,7 @@ spec:
     {{- else if .Values.gateway.create }}
     - name: {{ include "mcp-server.gatewayName" . }}
       namespace: {{ .Release.Namespace }}
-      {{- if .Values.gateway.sectionName }}
-      sectionName: {{ .Values.gateway.sectionName | quote }}
-      {{- else }}
-      sectionName: http
-      {{- end }}
+      sectionName: {{ include "mcp-server.routeSectionName" . | quote }}
     {{- else }}
     {{- fail "gateway.enabled=true requires gateway.parentRefs or gateway.create=true" }}
     {{- end }}

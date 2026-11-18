@@ -91,8 +91,8 @@ serviceMonitor:
 rbac:
   create: false
 
-# Gateway API: creates a Gateway (routable/LB IP) + HTTPRoute to this ClusterIP Service.
-# VERIFY gatewayClassName against the cluster (cilium, istio, nginx, …).
+# Gateway API: HTTPS Gateway (routable/LB IP) + HTTPRoute to this ClusterIP Service.
+# VERIFY gatewayClassName and certificate.issuerRef against the cluster.
 gateway:
   enabled: true
   create: true
@@ -101,12 +101,26 @@ gateway:
   # - type: IPAddress
   #   value: 10.50.0.22
   annotations: {}
-  listenerPort: 80
-  sectionName: http
   hostnames:
     - wobbegong-sql-mcp.example.local
   pathPrefix: /mcp
   pathType: PathPrefix
+  http:
+    enabled: false
+  tls:
+    enabled: true
+    port: 443
+    sectionName: https
+    mode: Terminate
+  certificate:
+    enabled: true
+    create: true
+    dnsNames:
+      - wobbegong-sql-mcp.example.local
+    issuerRef:
+      name: internal-ca
+      kind: ClusterIssuer
+      group: cert-manager.io
 
 networkPolicy:
   enabled: false

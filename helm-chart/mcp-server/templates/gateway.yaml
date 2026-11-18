@@ -2,6 +2,10 @@
 {{- if not .Values.gateway.gatewayClassName -}}
 {{- fail "gateway.gatewayClassName is required when gateway.create=true (e.g. cilium, istio, nginx, or your cluster GatewayClass)" -}}
 {{- end -}}
+{{- $hostname := "" -}}
+{{- if eq (len .Values.gateway.hostnames) 1 -}}
+{{- $hostname = index .Values.gateway.hostnames 0 -}}
+{{- end -}}
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -25,16 +29,40 @@ spec:
     {{- if .Values.gateway.listeners }}
     {{- toYaml .Values.gateway.listeners | nindent 4 }}
     {{- else }}
-    - name: http
+    {{- if .Values.gateway.http.enabled }}
+    - name: {{ .Values.gateway.http.sectionName | default "http" }}
       protocol: HTTP
-      port: {{ .Values.gateway.listenerPort | default 80 }}
-      {{- with .Values.gateway.hostnames }}
-      {{- if eq (len .) 1 }}
-      hostname: {{ index . 0 | quote }}
-      {{- end }}
+      port: {{ .Values.gateway.http.port | default .Values.gateway.listenerPort | default 80 }}
+      {{- if $hostname }}
+      hostname: {{ $hostname | quote }}
       {{- end }}
       allowedRoutes:
         namespaces:
           from: {{ .Values.gateway.allowedRoutesFrom | default "Same" }}
+    {{- end }}
+    {{- if .Values.gateway.tls.enabled }}
+    - name: {{ .Values.gateway.tls.sectionName | default "https" }}
+      protocol: HTTPS
+      port: {{ .Values.gateway.tls.port | default 443 }}
+      {{- if $hostname }}
+      hostname: {{ $hostname | quote }}
+      {{- end }}
+      tls:
+        mode: {{ .Values.gateway.tls.mode | default "Terminate" }}
+        certificateRefs:
+          {{- if .Values.gateway.tls.certificateRefs }}
+          {{- toYaml .Values.gateway.tls.certificateRefs | nindent 10 }}
+          {{- else }}
+          - kind: Secret
+            name: {{ include "mcp-server.certificateSecretName" . }}
+            group: ""
+          {{- end }}
+      allowedRoutes:
+        namespaces:
+          from: {{ .Values.gateway.allowedRoutesFrom | default "Same" }}
+    {{- end }}
+    {{- if and (not .Values.gateway.http.enabled) (not .Values.gateway.tls.enabled) }}
+    {{- fail "gateway.create=true requires gateway.http.enabled and/or gateway.tls.enabled, or set gateway.listeners explicitly" }}
+    {{- end }}
     {{- end }}
 {{- end }}

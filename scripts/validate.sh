@@ -53,6 +53,8 @@ REQUIRED_FILES=(
   helm-chart/mcp-server/templates/rbac.yaml
   helm-chart/mcp-server/templates/servicemonitor.yaml
   helm-chart/mcp-server/templates/httproute.yaml
+  helm-chart/mcp-server/templates/gateway.yaml
+  helm-chart/mcp-server/templates/certificate.yaml
   helm-chart/mcp-server/templates/networkpolicy.yaml
   helm-chart/mcp-server/templates/configmap.yaml
   helm-chart/mcp-server/templates/_helpers.tpl

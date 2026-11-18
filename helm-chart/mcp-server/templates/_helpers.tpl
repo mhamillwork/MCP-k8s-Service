@@ -79,3 +79,14 @@ Probe port helper
 {{- .root.Values.service.targetPort }}
 {{- end }}
 {{- end }}
+
+{{/*
+Gateway resource name
+*/}}
+{{- define "mcp-server.gatewayName" -}}
+{{- if .Values.gateway.name }}
+{{- .Values.gateway.name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-gw" (include "mcp-server.fullname" .) | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}

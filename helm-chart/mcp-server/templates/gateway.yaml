@@ -1,0 +1,40 @@
+{{- if and .Values.gateway.enabled .Values.gateway.create -}}
+{{- if not .Values.gateway.gatewayClassName -}}
+{{- fail "gateway.gatewayClassName is required when gateway.create=true (e.g. cilium, istio, nginx, or your cluster GatewayClass)" -}}
+{{- end -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ include "mcp-server.gatewayName" . }}
+  labels:
+    {{- include "mcp-server.labels" . | nindent 4 }}
+    {{- with .Values.gateway.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.gateway.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  gatewayClassName: {{ .Values.gateway.gatewayClassName | quote }}
+  {{- with .Values.gateway.addresses }}
+  addresses:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  listeners:
+    {{- if .Values.gateway.listeners }}
+    {{- toYaml .Values.gateway.listeners | nindent 4 }}
+    {{- else }}
+    - name: http
+      protocol: HTTP
+      port: {{ .Values.gateway.listenerPort | default 80 }}
+      {{- with .Values.gateway.hostnames }}
+      {{- if eq (len .) 1 }}
+      hostname: {{ index . 0 | quote }}
+      {{- end }}
+      {{- end }}
+      allowedRoutes:
+        namespaces:
+          from: {{ .Values.gateway.allowedRoutesFrom | default "Same" }}
+    {{- end }}
+{{- end }}

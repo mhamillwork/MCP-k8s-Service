@@ -5,11 +5,28 @@ metadata:
   name: {{ include "mcp-server.fullname" . }}
   labels:
     {{- include "mcp-server.labels" . | nindent 4 }}
-spec:
-  {{- with .Values.gateway.parentRefs }}
-  parentRefs:
+    {{- with .Values.gateway.routeLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.gateway.routeAnnotations }}
+  annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+spec:
+  parentRefs:
+    {{- if .Values.gateway.parentRefs }}
+    {{- toYaml .Values.gateway.parentRefs | nindent 4 }}
+    {{- else if .Values.gateway.create }}
+    - name: {{ include "mcp-server.gatewayName" . }}
+      namespace: {{ .Release.Namespace }}
+      {{- if .Values.gateway.sectionName }}
+      sectionName: {{ .Values.gateway.sectionName | quote }}
+      {{- else }}
+      sectionName: http
+      {{- end }}
+    {{- else }}
+    {{- fail "gateway.enabled=true requires gateway.parentRefs or gateway.create=true" }}
+    {{- end }}
   {{- with .Values.gateway.hostnames }}
   hostnames:
     {{- toYaml . | nindent 4 }}
@@ -20,10 +37,12 @@ spec:
     {{- else }}
     - matches:
         - path:
-            type: PathPrefix
-            value: {{ .Values.mcp.endpoint | default "/" }}
+            type: {{ .Values.gateway.pathType | default "PathPrefix" }}
+            value: {{ .Values.gateway.pathPrefix | default .Values.mcp.endpoint | default "/" }}
       backendRefs:
         - name: {{ include "mcp-server.fullname" . }}
           port: {{ .Values.service.port }}
+          kind: Service
+          weight: 1
     {{- end }}
 {{- end }}

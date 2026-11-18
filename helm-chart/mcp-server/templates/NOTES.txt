@@ -18,7 +18,22 @@ before connecting HTTP MCP clients. See docs/mcp-client-integration.md.
 Image: {{ include "mcp-server.image" . }}
 Replicas: {{ .Values.replicaCount }}
 ServiceMonitor: {{ .Values.serviceMonitor.enabled }}
-HTTPRoute: {{ .Values.gateway.enabled }}
+Gateway API: {{ .Values.gateway.enabled }}
+{{- if .Values.gateway.enabled }}
+  Gateway create: {{ .Values.gateway.create }}
+  {{- if .Values.gateway.create }}
+  Gateway name: {{ include "mcp-server.gatewayName" . }}
+  GatewayClass: {{ .Values.gateway.gatewayClassName }}
+  {{- end }}
+  HTTPRoute: {{ include "mcp-server.fullname" . }}
+  {{- with .Values.gateway.hostnames }}
+  Hostnames: {{ join ", " . }}
+  {{- end }}
+  Path: {{ .Values.gateway.pathPrefix | default .Values.mcp.endpoint | default "/" }}
+
+  After install, read the Gateway address (routable/LB IP):
+    kubectl -n {{ .Release.Namespace }} get gateway {{ include "mcp-server.gatewayName" . }} -o wide
+{{- end }}
 RBAC: {{ .Values.rbac.create }}
 Persistence: {{ .Values.persistence.enabled }}
 

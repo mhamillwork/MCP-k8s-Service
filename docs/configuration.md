@@ -20,7 +20,13 @@
 | `serviceAccount.create` | `true` | |
 | `serviceAccount.automount` | `false` | |
 | `rbac.create` | `false` | Enable only if API access is required |
-| `gateway.enabled` | `false` | Optional Gateway API HTTPRoute |
+| `gateway.enabled` | `false` | Enable Gateway API HTTPRoute (and optional Gateway) |
+| `gateway.create` | `true` | Create a Gateway that can allocate a routable/LB IP |
+| `gateway.gatewayClassName` | `""` | Required when `create=true` (e.g. `cilium`) |
+| `gateway.addresses` | `[]` | Optional static `IPAddress` / hostname requests |
+| `gateway.hostnames` | `[]` | HTTPRoute hostnames |
+| `gateway.pathPrefix` | `""` | Defaults to `mcp.endpoint` then `/` |
+| `gateway.parentRefs` | `[]` | Use instead of `create` to attach to a shared Gateway |
 | `networkPolicy.enabled` | `false` | Cilium-compatible when enabled |
 | `serviceMonitor.enabled` | `false` | Enable only with real `/metrics` |
 | `persistence.enabled` | `false` | SQLite / file state |

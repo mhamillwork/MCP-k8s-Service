@@ -121,17 +121,50 @@ probes:
     timeoutSeconds: 3
     failureThreshold: 3
 
-# Optional Gateway API HTTPRoute (disabled by default; ClusterIP only).
+# Optional Gateway API Gateway + HTTPRoute for a routable/LB IP.
+# ClusterIP Service remains the backend. Set gateway.enabled=true to expose via Gateway API.
 gateway:
   enabled: false
+
+  # When true, create a Gateway that can allocate a routable address (LB/VIP).
+  # Requires a cluster GatewayClass (Cilium, Istio, NGINX Gateway Fabric, etc.).
+  create: true
+  name: ""
+  gatewayClassName: ""
+  # Example for a static/routable IP request (controller-dependent):
+  # addresses:
+  #   - type: IPAddress
+  #     value: 10.50.0.20
+  addresses: []
+  annotations: {}
+  labels: {}
+  listenerPort: 80
+  allowedRoutesFrom: Same
+  # Override listeners entirely when non-empty (replaces the default HTTP listener).
+  listeners: []
+  # Listener section name referenced by HTTPRoute parentRefs when create=true.
+  sectionName: http
+
+  # HTTPRoute parentRefs. Leave empty when gateway.create=true to attach to this chart's Gateway.
+  # Or point at a shared Gateway instead of creating one per release:
+  # parentRefs:
+  #   - name: shared-mcp-gateway
+  #     namespace: gateway
+  #     sectionName: http
   parentRefs: []
-  # - name: shared-gateway
-  #   namespace: gateway
-  #   sectionName: https
+
   hostnames: []
-  # - mcp.example.local
+  # - technical-knowledge-mcp.example.local
+
+  # Default route path when rules is empty.
+  pathPrefix: ""
+  pathType: PathPrefix
   rules: []
-  # If rules is empty and gateway.enabled=true, a default path rule uses mcp.endpoint.
+  # If rules is empty and gateway.enabled=true, a default path rule uses
+  # pathPrefix (or mcp.endpoint, or "/").
+
+  routeAnnotations: {}
+  routeLabels: {}
 
 networkPolicy:
   enabled: false

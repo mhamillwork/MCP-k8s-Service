@@ -98,8 +98,22 @@ persistence:
 rbac:
   create: false
 
+# Gateway API: creates a Gateway (routable/LB IP) + HTTPRoute to this ClusterIP Service.
+# VERIFY gatewayClassName against the cluster (cilium, istio, nginx, …).
 gateway:
-  enabled: false
+  enabled: true
+  create: true
+  gatewayClassName: cilium
+  addresses: []
+  # - type: IPAddress
+  #   value: 10.50.0.24
+  annotations: {}
+  listenerPort: 80
+  sectionName: http
+  hostnames:
+    - devsecops-knowledge-mcp.example.local
+  pathPrefix: /mcp
+  pathType: PathPrefix
 
 networkPolicy:
   enabled: false

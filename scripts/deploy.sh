@@ -28,6 +28,7 @@ Actions:
   destroy    Remove release(s) — requires --yes
 
 Optional release-name selects a single Helmfile release, for example:
+  mcp-shared-gateway
   mcp-technical-knowledge
   mcp-wobbegong-sql
   mcp-gtiss-dis-knowledge

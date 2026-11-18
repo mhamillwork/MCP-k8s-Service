@@ -1,0 +1,52 @@
+# Shared Gateway for all MCP services — one routable/LB IP.
+# VERIFY gatewayClassName, hostname, dnsNames, and issuerRef for your cluster.
+
+fullnameOverride: mcp-shared-gateway
+
+gatewayClassName: cilium
+
+# Optional static IP:
+# addresses:
+#   - type: IPAddress
+#     value: 10.50.0.20
+addresses: []
+
+hostname: mcp.example.local
+
+# Gateway + HTTPRoutes are both in namespace mcp.
+allowedRoutesFrom: Same
+
+tls:
+  mode: Terminate
+  secretName: mcp-shared-gateway-tls
+
+# Same hostname, different HTTPS ports → one Gateway address.
+listeners:
+  - name: technical-knowledge
+    port: 8443
+    sectionName: technical-knowledge
+  - name: wobbegong-sql
+    port: 8444
+    sectionName: wobbegong-sql
+  - name: gtiss-dis-knowledge
+    port: 8445
+    sectionName: gtiss-dis-knowledge
+  - name: devsecops-knowledge
+    port: 8446
+    sectionName: devsecops-knowledge
+  - name: atoms-knowledge
+    port: 8447
+    sectionName: atoms-knowledge
+
+certificate:
+  enabled: true
+  create: true
+  name: mcp-shared-gateway-tls
+  secretName: mcp-shared-gateway-tls
+  dnsNames:
+    - mcp.example.local
+  commonName: mcp.example.local
+  issuerRef:
+    name: internal-ca
+    kind: ClusterIssuer
+    group: cert-manager.io

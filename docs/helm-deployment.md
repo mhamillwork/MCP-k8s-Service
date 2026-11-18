@@ -71,54 +71,63 @@ Do not enable PVC by default for Neo4j clients that only use external databases.
 
 Default probes are TCP against the service target port. Switch to HTTP only when the application exposes a dedicated health path. Do not probe `/mcp` unless that path is known to be safe for health checks.
 
-## Gateway API (HTTPS + routable IP)
+## Gateway API (one shared HTTPS IP)
 
-When `gateway.enabled=true` and `gateway.create=true`, the chart can create:
+Default layout:
 
-1. A **Gateway** (requests a routable/LB IP from the cluster GatewayClass)
-2. An **HTTPRoute** that attaches to that Gateway and forwards to the ClusterIP Service
-3. A cert-manager **Certificate** with `dnsNames` for TLS termination at the Gateway
+1. **`mcp-shared-gateway`** Helm release (`helm-chart/mcp-shared-gateway`)
+   - One Gateway → one routable/LB IP
+   - One cert-manager Certificate for `mcp.example.local`
+   - Five HTTPS listeners on ports **8443–8447** (same hostname, different port)
+2. **Five MCP releases** each create only an **HTTPRoute** (+ Deployment/Service)
+   - `gateway.create: false`
+   - `parentRefs` point at `mcp-shared-gateway` + the service `sectionName`
+   - Pods stay separate (one MCP container per pod)
 
-Isolated-network defaults in `helm-deploy/*-values.yaml` use **HTTPS only** (`http.enabled: false`, `tls.enabled: true`).
+| Service | Port | Client URL |
+|---|---|---|
+| Technical Knowledge | 8443 | `https://mcp.example.local:8443/mcp` |
+| Wobbegong SQL | 8444 | `https://mcp.example.local:8444/mcp` |
+| GTISS/DIS | 8445 | `https://mcp.example.local:8445/mcp` |
+| DevSecOps | 8446 | `https://mcp.example.local:8446/mcp` |
+| ATOMS | 8447 | `https://mcp.example.local:8447/mcp` |
 
 ```yaml
+# shared-gateway-values.yaml (excerpt)
+hostname: mcp.example.local
+listeners:
+  - name: technical-knowledge
+    port: 8443
+    sectionName: technical-knowledge
+```
+
+```yaml
+# technical-knowledge-values.yaml (excerpt)
 gateway:
   enabled: true
-  create: true
-  gatewayClassName: cilium
+  create: false
+  parentRefs:
+    - name: mcp-shared-gateway
+      namespace: mcp
+      sectionName: technical-knowledge
   hostnames:
-    - technical-knowledge-mcp.example.local
+    - mcp.example.local
   pathPrefix: /mcp
-  http:
-    enabled: false
-  tls:
-    enabled: true
-    port: 443
-    sectionName: https
-    mode: Terminate
-  certificate:
-    enabled: true
-    create: true
-    dnsNames:
-      - technical-knowledge-mcp.example.local
-    issuerRef:
-      name: internal-ca          # your air-gapped CA ClusterIssuer
-      kind: ClusterIssuer
 ```
 
 Prerequisites:
 
 - Gateway API CRDs + a GatewayClass
-- cert-manager installed
-- An internal `Issuer` / `ClusterIssuer` that can sign the `dnsNames`
-- DNS (or `/etc/hosts`) pointing those names at the Gateway address
-
-To use a shared Gateway instead of one per release, set `gateway.create: false` and provide `gateway.parentRefs`. You can still create a Certificate in this chart, or reference an existing TLS Secret via `gateway.tls.secretName` / `certificateRefs`.
+- cert-manager + internal CA `ClusterIssuer` (`internal-ca` placeholder)
+- DNS / hosts entry: `mcp.example.local` → shared Gateway address
+- Clients trust the internal CA
 
 ```bash
-kubectl -n mcp get gateway,httproute,certificate
-kubectl -n mcp get secret mcp-technical-knowledge-tls
+kubectl -n mcp get gateway mcp-shared-gateway -o wide
+kubectl -n mcp get httproute,certificate
 ```
+
+The per-service chart can still create its own Gateway when `gateway.create: true` (not used by default anymore).
 
 ## Rendering a single release
 

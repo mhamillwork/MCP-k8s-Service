@@ -60,7 +60,15 @@ REQUIRED_FILES=(
   helm-chart/mcp-server/templates/_helpers.tpl
   helm-chart/mcp-server/templates/NOTES.txt
   helm-chart/mcp-server/.helmignore
+  helm-chart/mcp-shared-gateway/Chart.yaml
+  helm-chart/mcp-shared-gateway/values.yaml
+  helm-chart/mcp-shared-gateway/templates/gateway.yaml
+  helm-chart/mcp-shared-gateway/templates/certificate.yaml
+  helm-chart/mcp-shared-gateway/templates/_helpers.tpl
+  helm-chart/mcp-shared-gateway/templates/NOTES.txt
+  helm-chart/mcp-shared-gateway/.helmignore
   helm-deploy/helmfile.yaml
+  helm-deploy/shared-gateway-values.yaml
   helm-deploy/technical-knowledge-values.yaml
   helm-deploy/wobbegong-sql-values.yaml
   helm-deploy/gtiss-dis-knowledge-values.yaml
@@ -164,6 +172,24 @@ if need_cmd helm; then
     cat /tmp/mcp-helm-lint.out >&2 || true
   fi
 
+  if helm lint helm-chart/mcp-shared-gateway >/tmp/mcp-shared-gw-lint.out 2>&1; then
+    pass "helm lint mcp-shared-gateway"
+  else
+    fail "helm lint mcp-shared-gateway failed"
+    cat /tmp/mcp-shared-gw-lint.out >&2 || true
+  fi
+
+  mkdir -p validation-output
+  if helm template mcp-shared-gateway helm-chart/mcp-shared-gateway \
+    --namespace mcp \
+    -f helm-deploy/shared-gateway-values.yaml \
+    >validation-output/mcp-shared-gateway.yaml 2>/tmp/mcp-helm-template.err; then
+    pass "helm template mcp-shared-gateway"
+  else
+    fail "helm template mcp-shared-gateway"
+    cat /tmp/mcp-helm-template.err >&2 || true
+  fi
+
   VALUES_FILES=(
     technical-knowledge-values.yaml
     wobbegong-sql-values.yaml
@@ -178,7 +204,6 @@ if need_cmd helm; then
     mcp-devsecops-knowledge
     mcp-atoms-knowledge
   )
-  mkdir -p validation-output
   for i in "${!VALUES_FILES[@]}"; do
     vf="${VALUES_FILES[$i]}"
     rn="${RELEASE_NAMES[$i]}"

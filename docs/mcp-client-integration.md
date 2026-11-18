@@ -11,15 +11,15 @@
 
 ## Connection parameters (after transport verification)
 
-| Service | ClusterIP (in-cluster) | Gateway HTTPS (isolated network) |
+| Service | ClusterIP (in-cluster) | Shared Gateway HTTPS (one IP, different ports) |
 |---|---|---|
-| Technical Knowledge | `http://mcp-technical-knowledge.mcp.svc.cluster.local:8000/mcp` | `https://technical-knowledge-mcp.example.local/mcp` |
-| Wobbegong SQL | `http://mcp-wobbegong-sql.mcp.svc.cluster.local:8000/mcp` | `https://wobbegong-sql-mcp.example.local/mcp` |
-| GTISS/DIS | `http://mcp-gtiss-dis-knowledge.mcp.svc.cluster.local:8000/mcp` | `https://gtiss-dis-knowledge-mcp.example.local/mcp` |
-| DevSecOps | `http://mcp-devsecops-knowledge.mcp.svc.cluster.local:8000/mcp` | `https://devsecops-knowledge-mcp.example.local/mcp` |
-| ATOMS | `http://mcp-atoms-knowledge.mcp.svc.cluster.local:8000/mcp` | `https://atoms-knowledge-mcp.example.local/mcp` |
+| Technical Knowledge | `http://mcp-technical-knowledge.mcp.svc.cluster.local:8000/mcp` | `https://mcp.example.local:8443/mcp` |
+| Wobbegong SQL | `http://mcp-wobbegong-sql.mcp.svc.cluster.local:8000/mcp` | `https://mcp.example.local:8444/mcp` |
+| GTISS/DIS | `http://mcp-gtiss-dis-knowledge.mcp.svc.cluster.local:8000/mcp` | `https://mcp.example.local:8445/mcp` |
+| DevSecOps | `http://mcp-devsecops-knowledge.mcp.svc.cluster.local:8000/mcp` | `https://mcp.example.local:8446/mcp` |
+| ATOMS | `http://mcp-atoms-knowledge.mcp.svc.cluster.local:8000/mcp` | `https://mcp.example.local:8447/mcp` |
 
-Gateway URLs require a valid TLS trust path to your internal CA on the MCP client.
+All Gateway URLs share one hostname/IP (`mcp-shared-gateway`). Clients must trust the internal CA.
 
 Confirm transport, port, and path against each Python script before configuring clients.
 

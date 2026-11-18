@@ -48,12 +48,23 @@ PUSH=true \
 ./scripts/validate.sh
 ```
 
-7. Deploy with Helmfile:
+7. Deploy with Helmfile (shared Gateway first, then MCP services):
 
 ```bash
 ./scripts/deploy.sh apply
-# or one release:
+# or:
+./scripts/deploy.sh apply mcp-shared-gateway
 ./scripts/deploy.sh apply mcp-technical-knowledge
+```
+
+Shared Gateway client URLs (one IP, different ports):
+
+```text
+https://mcp.example.local:8443/mcp  # technical-knowledge
+https://mcp.example.local:8444/mcp  # wobbegong-sql
+https://mcp.example.local:8445/mcp  # gtiss-dis-knowledge
+https://mcp.example.local:8446/mcp  # devsecops-knowledge
+https://mcp.example.local:8447/mcp  # atoms-knowledge
 ```
 
 ## Documentation

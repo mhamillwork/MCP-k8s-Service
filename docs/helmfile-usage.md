@@ -14,13 +14,16 @@ Or use the wrapper from the repo root:
 
 ## Releases
 
-| Release name | Values file |
-|---|---|
-| `mcp-technical-knowledge` | `technical-knowledge-values.yaml` |
-| `mcp-wobbegong-sql` | `wobbegong-sql-values.yaml` |
-| `mcp-gtiss-dis-knowledge` | `gtiss-dis-knowledge-values.yaml` |
-| `mcp-devsecops-knowledge` | `devsecops-knowledge-values.yaml` |
-| `mcp-atoms-knowledge` | `atoms-knowledge-values.yaml` |
+| Release name | Values file | Role |
+|---|---|---|
+| `mcp-shared-gateway` | `shared-gateway-values.yaml` | One Gateway + Certificate (shared IP) |
+| `mcp-technical-knowledge` | `technical-knowledge-values.yaml` | MCP pod + HTTPRoute |
+| `mcp-wobbegong-sql` | `wobbegong-sql-values.yaml` | MCP pod + HTTPRoute |
+| `mcp-gtiss-dis-knowledge` | `gtiss-dis-knowledge-values.yaml` | MCP pod + HTTPRoute |
+| `mcp-devsecops-knowledge` | `devsecops-knowledge-values.yaml` | MCP pod + HTTPRoute |
+| `mcp-atoms-knowledge` | `atoms-knowledge-values.yaml` | MCP pod + HTTPRoute |
+
+MCP service releases declare `needs: mcp/mcp-shared-gateway` so the shared Gateway is applied first.
 
 Namespace: `mcp` (created automatically when supported by the cluster/Helmfile settings).
 

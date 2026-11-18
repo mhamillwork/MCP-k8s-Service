@@ -1,0 +1,41 @@
+{{- if and .Values.certificate.enabled .Values.certificate.create -}}
+{{- if not .Values.certificate.issuerRef.name -}}
+{{- fail "certificate.issuerRef.name is required when certificate.create=true" -}}
+{{- end -}}
+{{- $dnsNames := .Values.certificate.dnsNames -}}
+{{- if not $dnsNames -}}
+{{- $dnsNames = list .Values.hostname -}}
+{{- end -}}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Values.certificate.name | default (include "mcp-shared-gateway.fullname" .) }}
+  labels:
+    {{- include "mcp-shared-gateway.labels" . | nindent 4 }}
+    {{- with .Values.certificate.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.certificate.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  secretName: {{ include "mcp-shared-gateway.tlsSecretName" . }}
+  dnsNames:
+    {{- toYaml $dnsNames | nindent 4 }}
+  {{- if .Values.certificate.commonName }}
+  commonName: {{ .Values.certificate.commonName | quote }}
+  {{- else }}
+  commonName: {{ .Values.hostname | quote }}
+  {{- end }}
+  issuerRef:
+    name: {{ .Values.certificate.issuerRef.name | quote }}
+    kind: {{ .Values.certificate.issuerRef.kind | default "ClusterIssuer" | quote }}
+    group: {{ .Values.certificate.issuerRef.group | default "cert-manager.io" | quote }}
+  {{- with .Values.certificate.duration }}
+  duration: {{ . | quote }}
+  {{- end }}
+  {{- with .Values.certificate.renewBefore }}
+  renewBefore: {{ . | quote }}
+  {{- end }}
+{{- end }}

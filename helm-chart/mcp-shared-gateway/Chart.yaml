@@ -1,0 +1,6 @@
+apiVersion: v2
+name: mcp-shared-gateway
+description: Shared Gateway API Gateway and TLS Certificate for all MCP services (one routable IP)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

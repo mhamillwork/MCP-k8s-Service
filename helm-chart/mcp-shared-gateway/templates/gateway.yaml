@@ -1,0 +1,41 @@
+{{- if not .Values.gatewayClassName -}}
+{{- fail "gatewayClassName is required (e.g. cilium, istio, nginx)" -}}
+{{- end -}}
+{{- if not .Values.listeners -}}
+{{- fail "listeners must list at least one HTTPS listener/port for MCP services" -}}
+{{- end -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ include "mcp-shared-gateway.fullname" . }}
+  labels:
+    {{- include "mcp-shared-gateway.labels" . | nindent 4 }}
+    {{- with .Values.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  gatewayClassName: {{ .Values.gatewayClassName | quote }}
+  {{- with .Values.addresses }}
+  addresses:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  listeners:
+    {{- range .Values.listeners }}
+    - name: {{ .sectionName | default .name }}
+      protocol: HTTPS
+      port: {{ .port }}
+      hostname: {{ $.Values.hostname | quote }}
+      tls:
+        mode: {{ $.Values.tls.mode | default "Terminate" }}
+        certificateRefs:
+          - kind: Secret
+            name: {{ include "mcp-shared-gateway.tlsSecretName" $ }}
+            group: ""
+      allowedRoutes:
+        namespaces:
+          from: {{ $.Values.allowedRoutesFrom | default "Same" }}
+    {{- end }}

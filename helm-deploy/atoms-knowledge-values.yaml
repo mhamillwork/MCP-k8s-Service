@@ -77,36 +77,25 @@ persistence:
 rbac:
   create: false
 
-# Gateway API: HTTPS Gateway (routable/LB IP) + HTTPRoute to this ClusterIP Service.
-# VERIFY gatewayClassName and certificate.issuerRef against the cluster.
+# Attach HTTPRoute to the shared Gateway (one IP for all MCP services).
+# Client URL: https://mcp.example.local:8447/mcp
 gateway:
   enabled: true
-  create: true
-  gatewayClassName: cilium
-  addresses: []
-  # - type: IPAddress
-  #   value: 10.50.0.25
-  annotations: {}
-  hostnames:
-    - atoms-knowledge-mcp.example.local
-  pathPrefix: /mcp
-  pathType: PathPrefix
+  create: false
+  certificate:
+    enabled: false
   http:
     enabled: false
   tls:
-    enabled: true
-    port: 443
-    sectionName: https
-    mode: Terminate
-  certificate:
-    enabled: true
-    create: true
-    dnsNames:
-      - atoms-knowledge-mcp.example.local
-    issuerRef:
-      name: internal-ca
-      kind: ClusterIssuer
-      group: cert-manager.io
+    enabled: false
+  parentRefs:
+    - name: mcp-shared-gateway
+      namespace: mcp
+      sectionName: atoms-knowledge
+  hostnames:
+    - mcp.example.local
+  pathPrefix: /mcp
+  pathType: PathPrefix
 
 # Pin this MCP Deployment to a specific node. Replace with your node name or label.
 nodeSelector:

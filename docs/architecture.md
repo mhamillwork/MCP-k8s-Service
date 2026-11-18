@@ -8,14 +8,16 @@ This repository packages five existing Python Model Context Protocol (MCP) servi
 MCP clients (Open WebUI, Cline, agents, …)
         │
         ▼
-Kubernetes ClusterIP Services (namespace: mcp)
+Shared Gateway (one IP)  https://mcp.example.local:<8443-8447>/mcp
         │
-        ├── mcp-technical-knowledge      → Technical Knowledge MCP  → Neo4j
-        ├── mcp-wobbegong-sql            → Wobbegong SQL MCP        → SQLite PVC
-        ├── mcp-gtiss-dis-knowledge      → GTISS/DIS Knowledge MCP  → Neo4j
-        ├── mcp-devsecops-knowledge      → DevSecOps Knowledge MCP  → Jira/GitLab/Confluence/Artifactory
-        └── mcp-atoms-knowledge          → ATOMS Knowledge MCP      → Neo4j
+        ├── :8443 HTTPRoute → ClusterIP mcp-technical-knowledge → pod → Neo4j
+        ├── :8444 HTTPRoute → ClusterIP mcp-wobbegong-sql       → pod → SQLite PVC
+        ├── :8445 HTTPRoute → ClusterIP mcp-gtiss-dis-knowledge → pod → Neo4j
+        ├── :8446 HTTPRoute → ClusterIP mcp-devsecops-knowledge → pod → DevSecOps APIs
+        └── :8447 HTTPRoute → ClusterIP mcp-atoms-knowledge     → pod → Neo4j
 ```
+
+Each MCP service still runs in its **own pod** (one container per Deployment). Only the Gateway/Certificate/IP is shared.
 
 ## Design principles
 

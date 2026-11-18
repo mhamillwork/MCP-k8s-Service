@@ -1,9 +1,10 @@
-# Helmfile for the five MCP services.
+# Helmfile for the shared MCP Gateway and five MCP services.
 # Run from this directory (helm-deploy/) so relative chart/values paths resolve.
 #
 # Examples:
 #   helmfile lint
 #   helmfile template
+#   helmfile -l name=mcp-shared-gateway apply
 #   helmfile -l name=mcp-technical-knowledge apply
 #   helmfile apply
 #   helmfile -l name=mcp-wobbegong-sql destroy   # destructive; require explicit intent
@@ -25,10 +26,24 @@ environments:
 ---
 
 releases:
+  # Deploy the shared Gateway first (one IP). MCP HTTPRoutes attach to it.
+  - name: mcp-shared-gateway
+    namespace: mcp
+    chart: ../helm-chart/mcp-shared-gateway
+    missingFileHandler: Error
+    labels:
+      app: shared-gateway
+      group: mcp
+      tier: gateway
+    values:
+      - shared-gateway-values.yaml
+
   - name: mcp-technical-knowledge
     namespace: mcp
     chart: ../helm-chart/mcp-server
     missingFileHandler: Error
+    needs:
+      - mcp/mcp-shared-gateway
     labels:
       app: technical-knowledge
       group: mcp
@@ -39,6 +54,8 @@ releases:
     namespace: mcp
     chart: ../helm-chart/mcp-server
     missingFileHandler: Error
+    needs:
+      - mcp/mcp-shared-gateway
     labels:
       app: wobbegong-sql
       group: mcp
@@ -49,6 +66,8 @@ releases:
     namespace: mcp
     chart: ../helm-chart/mcp-server
     missingFileHandler: Error
+    needs:
+      - mcp/mcp-shared-gateway
     labels:
       app: gtiss-dis-knowledge
       group: mcp
@@ -59,6 +78,8 @@ releases:
     namespace: mcp
     chart: ../helm-chart/mcp-server
     missingFileHandler: Error
+    needs:
+      - mcp/mcp-shared-gateway
     labels:
       app: devsecops-knowledge
       group: mcp
@@ -69,6 +90,8 @@ releases:
     namespace: mcp
     chart: ../helm-chart/mcp-server
     missingFileHandler: Error
+    needs:
+      - mcp/mcp-shared-gateway
     labels:
       app: atoms-knowledge
       group: mcp

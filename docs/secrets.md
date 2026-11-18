@@ -45,10 +45,11 @@ kubectl -n mcp create secret generic mcp-devsecops-knowledge-apis \
 
 Use least-privilege, preferably read-only tokens until mutating tools are explicitly authorized.
 
-## TLS certificates (Gateway HTTPS)
+## TLS certificates (shared Gateway HTTPS)
 
-Service values create a cert-manager `Certificate` per release. The resulting Secret
-(default name `<release>-tls`) is referenced by the Gateway HTTPS listener.
+The `mcp-shared-gateway` release creates one cert-manager `Certificate`
+(`mcp-shared-gateway-tls`) for `mcp.example.local`. All HTTPS listeners on the
+shared Gateway reuse that Secret.
 
 You must provide an internal Issuer/ClusterIssuer (air-gapped CA), for example:
 
@@ -68,13 +69,14 @@ EOF
 Then confirm:
 
 ```bash
-kubectl -n mcp get certificate
-kubectl -n mcp describe certificate mcp-technical-knowledge-tls
+kubectl -n mcp get certificate mcp-shared-gateway-tls
+kubectl -n mcp describe certificate mcp-shared-gateway-tls
+kubectl -n mcp get secret mcp-shared-gateway-tls
 ```
 
-Do not commit private keys or CA material to Git. If you already have a TLS Secret, set
-`gateway.certificate.create: false` and point `gateway.tls.secretName` (or
-`gateway.tls.certificateRefs`) at that Secret.
+Do not commit private keys or CA material to Git. To use a pre-created TLS Secret,
+set `certificate.create: false` in `shared-gateway-values.yaml` and point
+`tls.secretName` at that Secret.
 
 ## Image pull secret
 

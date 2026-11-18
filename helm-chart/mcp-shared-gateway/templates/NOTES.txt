@@ -1,0 +1,26 @@
+Shared MCP Gateway "{{ include "mcp-shared-gateway.fullname" . }}" installed in "{{ .Release.Namespace }}".
+
+Hostname: {{ .Values.hostname }}
+GatewayClass: {{ .Values.gatewayClassName }}
+TLS Secret: {{ include "mcp-shared-gateway.tlsSecretName" . }}
+
+HTTPS listeners (one IP, different ports):
+{{- range .Values.listeners }}
+  - {{ $.Values.hostname }}:{{ .port }}  (sectionName={{ .sectionName | default .name }})
+{{- end }}
+
+Client URLs (after DNS points {{ .Values.hostname }} at the Gateway address):
+{{- range .Values.listeners }}
+  https://{{ $.Values.hostname }}:{{ .port }}/mcp
+{{- end }}
+
+Lookup the shared address:
+  kubectl -n {{ .Release.Namespace }} get gateway {{ include "mcp-shared-gateway.fullname" . }} -o wide
+  kubectl -n {{ .Release.Namespace }} get certificate {{ .Values.certificate.name | default (include "mcp-shared-gateway.fullname" .) }}
+
+Attach each MCP HTTPRoute with:
+  gateway.create: false
+  gateway.parentRefs:
+    - name: {{ include "mcp-shared-gateway.fullname" . }}
+      namespace: {{ .Release.Namespace }}
+      sectionName: <listener-sectionName>

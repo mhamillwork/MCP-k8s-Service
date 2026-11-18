@@ -1,0 +1,61 @@
+# Shared MCP Gateway — one routable/LB IP for all MCP HTTPRoutes.
+# MCP pods remain separate; only the Gateway is shared.
+
+nameOverride: ""
+fullnameOverride: "mcp-shared-gateway"
+
+gatewayClassName: cilium
+
+# Optional static/routable IP request (controller-dependent).
+addresses: []
+# - type: IPAddress
+#   value: 10.50.0.20
+
+annotations: {}
+labels: {}
+
+# Single hostname for all MCP services; distinguish by HTTPS listener port.
+hostname: mcp.example.local
+
+# Same = only HTTPRoutes in this namespace (mcp). Use All only if routes live elsewhere.
+allowedRoutesFrom: Same
+
+tls:
+  mode: Terminate
+  # Secret created by the Certificate below (or an existing Secret if certificate.create=false).
+  secretName: mcp-shared-gateway-tls
+
+# One HTTPS listener per MCP service (same hostname, different port → one Gateway IP).
+listeners:
+  - name: technical-knowledge
+    port: 8443
+    sectionName: technical-knowledge
+  - name: wobbegong-sql
+    port: 8444
+    sectionName: wobbegong-sql
+  - name: gtiss-dis-knowledge
+    port: 8445
+    sectionName: gtiss-dis-knowledge
+  - name: devsecops-knowledge
+    port: 8446
+    sectionName: devsecops-knowledge
+  - name: atoms-knowledge
+    port: 8447
+    sectionName: atoms-knowledge
+
+certificate:
+  enabled: true
+  create: true
+  name: mcp-shared-gateway-tls
+  secretName: mcp-shared-gateway-tls
+  dnsNames:
+    - mcp.example.local
+  commonName: mcp.example.local
+  issuerRef:
+    name: internal-ca
+    kind: ClusterIssuer
+    group: cert-manager.io
+  duration: ""
+  renewBefore: ""
+  annotations: {}
+  labels: {}
